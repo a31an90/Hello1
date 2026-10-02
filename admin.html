@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin — Bahrain F1 Motorcycle Shuttle</title>
+  <meta name="theme-color" content="#15171B">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&family=Barlow:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/admin/admin.css">
+  <script src="/admin/admin.js" defer></script>
+</head>
+<body class="admin">
+  <!-- Login -->
+  <main id="login-view" class="login" hidden>
+    <form id="login-form" class="login-card" novalidate>
+      <p class="wordmark"><span class="wordmark-a">Bahrain F1</span><span class="wordmark-b">Shuttle admin</span></p>
+      <div class="field">
+        <label for="l-user">Username</label>
+        <input id="l-user" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      </div>
+      <div class="field">
+        <label for="l-pass">Password</label>
+        <input id="l-pass" type="password" autocomplete="current-password" required>
+      </div>
+      <p class="form-error" id="login-error" role="alert" hidden></p>
+      <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+      <p class="login-back"><a href="/">Back to booking site</a></p>
+    </form>
+  </main>
+
+  <!-- Dashboard -->
+  <div id="app-view" hidden>
+    <header class="a-top">
+      <p class="wordmark"><span class="wordmark-a">Bahrain F1</span><span class="wordmark-b">Shuttle admin</span></p>
+      <div class="a-top-right">
+        <span class="a-user" id="a-user"></span>
+        <a class="a-link" href="/api/admin/export.csv">Export CSV</a>
+        <button type="button" class="a-link" id="logout-btn">Sign out</button>
+      </div>
+    </header>
+
+    <main class="a-main">
+      <section class="stats" aria-label="Summary">
+        <div class="stat"><p class="stat-n" id="s-active">–</p><p class="stat-l">Total bookings</p><p class="stat-s">Active (confirmed)</p></div>
+        <div class="stat stat-ok"><p class="stat-n" id="s-avail">–</p><p class="stat-l">Available slots</p><p class="stat-s" id="s-avail-sub">Bookable now</p></div>
+        <div class="stat stat-red"><p class="stat-n" id="s-booked">–</p><p class="stat-l">Booked slots</p><p class="stat-s" id="s-booked-sub"></p></div>
+        <div class="stat"><p class="stat-n" id="s-cancelled">–</p><p class="stat-l">Cancelled</p><p class="stat-s">Kept for history</p></div>
+      </section>
+
+      <nav class="tabs" role="tablist" aria-label="Admin sections">
+        <button role="tab" id="tab-bookings" aria-controls="panel-bookings" aria-selected="true">Bookings</button>
+        <button role="tab" id="tab-slots" aria-controls="panel-slots" aria-selected="false">Slot board</button>
+        <button role="tab" id="tab-add" aria-controls="panel-add" aria-selected="false">Add booking</button>
+        <button role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="false">Settings</button>
+      </nav>
+
+      <!-- Bookings -->
+      <section role="tabpanel" id="panel-bookings" aria-labelledby="tab-bookings">
+        <form class="filters" id="filters">
+          <input type="search" id="q" placeholder="Search Booking ID, name or phone" aria-label="Search bookings">
+          <select id="f-date" aria-label="Filter by date"><option value="">All dates</option></select>
+          <select id="f-route" aria-label="Filter by route"><option value="">All routes</option></select>
+          <select id="f-time" aria-label="Filter by time"><option value="">All times</option></select>
+          <select id="f-status" aria-label="Filter by status">
+            <option value="">All statuses</option><option value="CONFIRMED">Confirmed</option><option value="CANCELLED">Cancelled</option>
+          </select>
+        </form>
+        <p class="a-count" id="b-count" aria-live="polite"></p>
+        <div class="table-wrap">
+          <table class="btable">
+            <thead><tr>
+              <th>Booking ID</th><th>Passenger name</th><th>Phone number</th><th>Date</th><th>Route</th>
+              <th>Pickup time</th><th>Fare</th><th>Status</th><th>Booking created</th><th><span class="sr">Actions</span></th>
+            </tr></thead>
+            <tbody id="b-rows"></tbody>
+          </table>
+        </div>
+        <p class="empty-a" id="b-empty" hidden>No bookings found.</p>
+      </section>
+
+      <!-- Slot board -->
+      <section role="tabpanel" id="panel-slots" aria-labelledby="tab-slots" hidden>
+        <div class="board-head">
+          <label class="admin-label" for="board-date">Date</label>
+          <select id="board-date"></select>
+          <p class="hint">Reopen slot cancels the booking holding it (record kept) and makes the slot bookable again.</p>
+        </div>
+        <div class="board" id="board"></div>
+      </section>
+
+      <!-- Add booking -->
+      <section role="tabpanel" id="panel-add" aria-labelledby="tab-add" hidden>
+        <form id="add-form" class="add-form" novalidate>
+          <div class="field"><label for="a-name">Name</label><input id="a-name" type="text" maxlength="80" required></div>
+          <div class="field"><label for="a-phone">Phone number</label><input id="a-phone" type="tel" inputmode="tel" placeholder="01X-XXXXXXX" maxlength="16" required></div>
+          <div class="field"><label for="a-date">Date</label><select id="a-date" required></select></div>
+          <div class="field"><label for="a-route">Route</label><select id="a-route" required></select></div>
+          <div class="field"><label for="a-time">Time</label><select id="a-time" required></select></div>
+          <label class="check"><input type="checkbox" id="a-citizen"><span>Passenger confirmed they are a Malaysian citizen</span></label>
+          <label class="check"><input type="checkbox" id="a-override"><span>Allow inside the 1-hour cutoff (walk-up booking)</span></label>
+          <p class="form-error" id="add-error" role="alert" hidden></p>
+          <p class="ok-msg" id="add-ok" role="status" hidden></p>
+          <button type="submit" class="btn btn-primary btn-block">Add booking</button>
+        </form>
+      </section>
+
+      <!-- Settings -->
+      <section role="tabpanel" id="panel-settings" aria-labelledby="tab-settings" hidden>
+        <form id="settings-form" class="settings" novalidate>
+          <h2 class="a-h2">Event dates</h2>
+          <p class="hint">Customers can only book these dates. Removing a date keeps its existing bookings.</p>
+          <ul class="date-list" id="date-list"></ul>
+          <div class="date-add">
+            <input type="date" id="new-date" aria-label="New event date">
+            <button type="button" class="btn btn-outline" id="add-date">Add date</button>
+          </div>
+
+          <h2 class="a-h2">Pickup point instructions</h2>
+          <p class="hint">Shown on the site and on each confirmation. Leave blank to show “Exact pickup point instructions will be provided separately.”</p>
+          <div id="notes-fields"></div>
+
+          <h2 class="a-h2">Booking limit per phone number</h2>
+          <p class="hint">Stops one person holding many slots. 0 means no limit. Admin bookings ignore this.</p>
+          <div class="field"><input type="text" inputmode="numeric" id="max-phone" aria-label="Maximum active bookings per phone number"></div>
+
+          <p class="form-error" id="settings-error" role="alert" hidden></p>
+          <p class="ok-msg" id="settings-ok" role="status" hidden></p>
+          <button type="submit" class="btn btn-primary btn-block">Save settings</button>
+        </form>
+
+        <form id="pw-form" class="settings" novalidate>
+          <h2 class="a-h2">Change password</h2>
+          <div class="field"><label for="pw-cur">Current password</label><input id="pw-cur" type="password" autocomplete="current-password"></div>
+          <div class="field"><label for="pw-new">New password (10+ characters)</label><input id="pw-new" type="password" autocomplete="new-password" minlength="10"></div>
+          <p class="form-error" id="pw-error" role="alert" hidden></p>
+          <p class="ok-msg" id="pw-ok" role="status" hidden></p>
+          <button type="submit" class="btn btn-outline btn-block">Change password</button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- Booking detail -->
+  <dialog id="detail" class="dlg" aria-labelledby="d-title">
+    <div class="dlg-head">
+      <h2 id="d-title" class="a-h2"></h2>
+      <button type="button" class="assistant-close" id="d-close" aria-label="Close">✕</button>
+    </div>
+    <p class="pill-wrap"><span class="pill" id="d-status"></span></p>
+    <dl class="review" id="d-fields"></dl>
+    <p class="d-slot" id="d-slot" hidden></p>
+    <div class="d-actions" id="d-actions"></div>
+    <p class="form-error" id="d-error" role="alert" hidden></p>
+    <div class="field">
+      <label for="d-notes">Admin notes</label>
+      <textarea id="d-notes" maxlength="1000"></textarea>
+    </div>
+    <button type="button" class="btn btn-outline" id="d-save-notes">Save notes</button>
+    <h3 class="a-h3">History</h3>
+    <ol class="history" id="d-history"></ol>
+  </dialog>
+
+  <!-- Confirmation -->
+  <dialog id="confirm" class="dlg dlg-sm" aria-labelledby="c-msg">
+    <p id="c-msg" class="c-msg"></p>
+    <div class="field" id="c-reason-wrap" hidden>
+      <label for="c-reason">Reason (optional)</label>
+      <input id="c-reason" type="text" maxlength="200">
+    </div>
+    <div class="stack">
+      <button type="button" class="btn btn-danger btn-block" id="c-yes"></button>
+      <button type="button" class="btn btn-quiet btn-block" id="c-no">Go back</button>
+    </div>
+  </dialog>
+</body>
+</html>
